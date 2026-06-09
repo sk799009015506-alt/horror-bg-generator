@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Horror Background Generator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,400;1,400&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0a0a0a;color:#e8e0d0;font-family:'Crimson Pro',Georgia,serif;min-height:100vh;padding:1.5rem 1rem}
+  .app-title{font-family:'Cinzel',serif;font-size:22px;font-weight:700;color:#e8e0d0;letter-spacing:3px;text-align:center;margin-bottom:4px}
+  .app-sub{font-size:13px;color:#888;text-align:center;margin-bottom:1.5rem;letter-spacing:1px;font-style:italic}
+  .divider{height:0.5px;background:#2a2a2a;margin:1rem 0}
+  .field-label{font-family:'Cinzel',serif;font-size:10px;letter-spacing:1.5px;color:#666;margin-bottom:6px}
+  input[type="password"],textarea{width:100%;font-family:'Crimson Pro',Georgia,serif;font-size:15px;padding:10px 14px;border:0.5px solid #2a2a2a;border-radius:12px;background:#111;color:#e8e0d0;margin-bottom:14px}
+  input[type="password"]:focus,textarea:focus{outline:none;border-color:#555}
+  textarea{min-height:90px;resize:vertical;line-height:1.6}
+  textarea::placeholder{color:#444;font-style:italic;font-size:14px}
+  .api-note{font-size:12px;color:#555;font-style:italic;margin-top:-10px;margin-bottom:14px}
+  .style-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+  .style-btn{padding:10px 4px;text-align:center;font-family:'Cinzel',serif;font-size:11px;letter-spacing:0.5px;border:0.5px solid #2a2a2a;border-radius:10px;cursor:pointer;background:#111;color:#888}
+  .style-btn.active{border-color:#888;background:#1a1a1a;color:#e8e0d0;font-weight:700}
+  .btn-generate{width:100%;padding:14px;font-family:'Cinzel',serif;font-size:13px;letter-spacing:2px;font-weight:700;background:#111;color:#e8e0d0;border:1px solid #555;border-radius:10px;cursor:pointer;margin-top:4px}
+  .btn-generate:active{background:#1a1a1a}
+  .loading-wrap{text-align:center;padding:3rem 1rem}
+  .loading-spinner{width:36px;height:36px;border:2px solid #2a2a2a;border-top:2px solid #e8e0d0;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-text{font-size:15px;color:#888;font-style:italic}
+  .loading-step{font-size:12px;color:#555;margin-top:6px}
+  .result-img{width:100%;border-radius:12px;border:0.5px solid #2a2a2a;display:block;margin-bottom:12px}
+  .download-btn{display:block;width:100%;padding:12px;text-align:center;font-family:'Cinzel',serif;font-size:12px;letter-spacing:1px;border:0.5px solid #444;border-radius:10px;cursor:pointer;background:#1a1a1a;color:#888;text-decoration:none;margin-bottom:10px}
+  .btn-new{display:block;width:100%;padding:11px;text-align:center;font-family:'Cinzel',serif;font-size:12px;letter-spacing:1px;border:0.5px solid #2a2a2a;border-radius:10px;cursor:pointer;background:transparent;color:#555}
+  .error-card{background:#111;border-radius:12px;padding:1.2rem;text-align:center;margin-top:12px;border:0.5px solid #2a2a2a}
+  .error-title{font-family:'Cinzel',serif;font-size:13px;color:#e8e0d0;margin-bottom:8px;letter-spacing:1px}
+  .error-msg{font-size:13px;color:#888;line-height:1.6;font-style:italic}
+  .error-detail{font-size:11px;color:#555;margin-top:6px;word-break:break-all;font-family:monospace}
+  .btn-retry{display:block;width:100%;margin-top:10px;padding:10px;font-family:'Cinzel',serif;font-size:12px;letter-spacing:1px;border:0.5px solid #2a2a2a;border-radius:10px;cursor:pointer;background:transparent;color:#666}
+  #main-section{display:block}
+  #loading-section{display:none}
+  #result-section{display:none}
+</style>
+</head>
+<body>
+<div class="app-title">BACKGROUND GENERATOR</div>
+<div class="app-sub">2D Horror · Replicate API</div>
+
+<div id="main-section">
+  <div class="field-label">REPLICATE API KEY</div>
+  <input type="password" id="api-key" placeholder="r8_xxxxxxxxxxxxxxxxxxxx" />
+  <div class="api-note">Sirf is browser mein rehta hai ✅</div>
+  <div class="divider"></div>
+  <div class="field-label">BACKGROUND PROMPT</div>
+  <textarea id="prompt-input" placeholder="App 1 se copy kiya hua prompt yahan paste karo...&#10;&#10;Ya khud likho:&#10;Dark tunnel highway night, fog, horror atmosphere..."></textarea>
+  <div class="field-label">STYLE CHUNO</div>
+  <div class="style-grid">
+    <div class="style-btn active" onclick="selectStyle(this,'dark 2D illustration, horror anime style, cel shaded')">Horror Anime</div>
+    <div class="style-btn" onclick="selectStyle(this,'dark 2D comic book style, horror graphic novel art')">Comic Horror</div>
+    <div class="style-btn" onclick="selectStyle(this,'dark atmospheric 2D painting, horror concept art, moody')">Concept Art</div>
+    <div class="style-btn" onclick="selectStyle(this,'dark 2D cartoon horror style, exaggerated shadows')">Cartoon Dark</div>
+    <div class="style-btn" onclick="selectStyle(this,'vintage horror 2D illustration, retro horror poster style')">Retro Horror</div>
+    <div class="style-btn" onclick="selectStyle(this,'dark 2D digital art, horror game background style')">Game BG</div>
+  </div>
+  <button class="btn-generate" onclick="generateImage()">✦ BACKGROUND BANAO ✦</button>
+</div>
+
+<div id="loading-section">
+  <div class="loading-wrap">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Image generate ho rahi hai...</div>
+    <div class="loading-step" id="loading-step">Replicate API se request ja rahi hai...</div>
+  </div>
+</div>
+
+<div id="result-section"></div>
+
+<script>
+const WORKER_URL = 'https://replicate-proxyg-cake-1f82.veryhappy181818.workers.dev';
+let selectedStyle = 'dark 2D illustration, horror anime style, cel shaded';
+
+function selectStyle(el, style){
+  document.querySelectorAll('.style-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  selectedStyle = style;
+}
+
+async function generateImage(){
+  const apiKey = document.getElementById('api-key').value.trim();
+  const prompt = document.getElementById('prompt-input').value.trim();
+  if(!apiKey){ alert('Bhai Replicate API key daalo!'); return; }
+  if(!prompt || prompt.length < 10){ alert('Prompt thoda detail mein likho!'); return; }
+
+  const fullPrompt = prompt + ', ' + selectedStyle + ', no humans, no characters, background only, wide landscape, high quality, detailed';
+  const negPrompt = 'people, humans, characters, text, watermark, blurry, low quality';
+
+  document.getElementById('main-section').style.display='none';
+  document.getElementById('loading-section').style.display='block';
+  document.getElementById('result-section').style.display='none';
+
+  const steps = ['Replicate API se request ja rahi hai...','AI image generate kar raha hai...','Thoda wait karo — 20-30 seconds...','Almost ready...'];
+  let si = 0;
+  const interval = setInterval(()=>{ si=(si+1)%steps.length; const el=document.getElementById('loading-step'); if(el) el.textContent=steps[si]; }, 5000);
+
+  try{
+    const res = await fetch(WORKER_URL + '/v1/models/black-forest-labs/flux-schnell/predictions', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + apiKey },
+      body: JSON.stringify({ input:{ prompt:fullPrompt, negative_prompt:negPrompt, width:1280, height:720, num_outputs:1, num_inference_steps:4 } })
+    });
+    clearInterval(interval);
+    if(!res.ok){ const e=await res.json().catch(()=>({})); throw new Error('API '+res.status+': '+(e.detail||e.error?.message||res.statusText)); }
+    const data = await res.json();
+    if(data.status==='succeeded' && data.output && data.output[0]){ showResult(data.output[0]); return; }
+    if(data.id){ await pollResult(data.id, apiKey); }
+    else throw new Error('Prediction ID nahi mili');
+  } catch(e){ clearInterval(interval); showError(e.message||'Unknown error'); }
+}
+
+async function pollResult(predId, apiKey){
+  for(let i=0; i<40; i++){
+    await new Promise(r=>setTimeout(r,2000));
+    const el=document.getElementById('loading-step'); if(el) el.textContent='Processing... ('+(i+1)*2+'s)';
+    const res = await fetch(WORKER_URL+'/v1/predictions/'+predId, { headers:{'Authorization':'Bearer '+apiKey} });
+    const data = await res.json();
+    if(data.status==='succeeded' && data.output && data.output[0]){ showResult(data.output[0]); return; }
+    if(data.status==='failed') throw new Error(data.error||'Generation failed');
+  }
+  throw new Error('Timeout — dobara try karo');
+}
+
+function showResult(imgUrl){
+  document.getElementById('loading-section').style.display='none';
+  const sec=document.getElementById('result-section');
+  sec.style.display='block';
+  sec.innerHTML='<img src="'+imgUrl+'" class="result-img" /><a href="'+imgUrl+'" download="horror_bg.jpg" target="_blank" class="download-btn">⬇ DOWNLOAD KARO</a><button class="btn-new" onclick="resetApp()">↩ Nayi Background Banao</button>';
+}
+
+function showError(msg){
+  document.getElementById('loading-section').style.display='none';
+  document.getElementById('main-section').style.display='block';
+  const sec=document.getElementById('result-section');
+  sec.style.display='block';
+  sec.innerHTML='<div class="error-card"><div class="error-title">⚠️ ERROR</div><div class="error-msg">Kuch problem aayi</div><div class="error-detail">'+msg+'</div><button class="btn-retry" onclick="document.getElementById(\'result-section\').style.display=\'none\'">Dobara Try Karo</button></div>';
+}
+
+function resetApp(){
+  document.getElementById('result-section').style.display='none';
+  document.getElementById('result-section').innerHTML='';
+  document.getElementById('prompt-input').value='';
+  document.getElementById('main-section').style.display='block';
+}
+</script>
+</body>
+</html>
